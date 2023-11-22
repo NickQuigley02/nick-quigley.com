@@ -1,0 +1,28 @@
+name: Deploy to S3
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Authenticate with AWS
+        run: |
+          aws configure set aws_access_key_id $OIDC_ACCESS_KEY_ID
+          aws configure set aws_secret_access_key $OIDC_SECRET_ACCESS_KEY
+          aws configure set aws_session_token $OIDC_SESSION_TOKEN
+        env:
+          OIDC_ACCESS_KEY_ID: ${{ secrets.OIDC_ACCESS_KEY_ID }}
+          OIDC_SECRET_ACCESS_KEY: ${{ secrets.OIDC_SECRET_ACCESS_KEY }}
+          OIDC_SESSION_TOKEN: ${{ secrets.OIDC_SESSION_TOKEN }}
+
+      - name: Deploy to S3
+        run: |
+          aws s3 sync . s3://nick-quigley.com
