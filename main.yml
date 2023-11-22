@@ -1,28 +1,26 @@
 name: Deploy to S3
-
 on:
   push:
     branches:
       - main
-
+env:
+  BUCKET_NAME : "nick-quigley.com"
+  AWS_REGION : "us-east-2"
+permissions:
+  id-token: write
+  contents: read 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
-
+        uses: actions/checkout@v4
       - name: Authenticate with AWS
-        run: |
-          aws configure set aws_access_key_id $OIDC_ACCESS_KEY_ID
-          aws configure set aws_secret_access_key $OIDC_SECRET_ACCESS_KEY
-          aws configure set aws_session_token $OIDC_SESSION_TOKEN
-        env:
-          OIDC_ACCESS_KEY_ID: ${{ secrets.OIDC_ACCESS_KEY_ID }}
-          OIDC_SECRET_ACCESS_KEY: ${{ secrets.OIDC_SECRET_ACCESS_KEY }}
-          OIDC_SESSION_TOKEN: ${{ secrets.OIDC_SESSION_TOKEN }}
-
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: arn:aws:iam::540375408222:role/CodePipeline
+          role-session-name: s3syncer
+          aws-region: ${{ env.AWS_REGION }}
       - name: Deploy to S3
         run: |
           aws s3 sync . s3://nick-quigley.com
